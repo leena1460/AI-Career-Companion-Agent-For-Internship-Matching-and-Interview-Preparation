@@ -6,9 +6,11 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 import chromadb
+from chromadb.api.client import ClientAPI
 from chromadb.api.models.Collection import Collection
 
-from app.rag.config import RAGConfig
+from app.rag.config import HTTP_MODE, RAGConfig
+from app.rag.exceptions import VectorStoreConnectionError
 
 
 class VectorStore(ABC):
@@ -43,13 +45,16 @@ class VectorStore(ABC):
 
 
 class ChromaVectorStore(VectorStore):
-    """Persistent ChromaDB collection for internship embeddings."""
+    """ChromaDB collection for internship embeddings.
+
+    Backed either by a standalone Chroma server or by an on-disk embedded
+    store, selected through :class:`RAGConfig`.
+    """
 
     def __init__(self, config: RAGConfig | None = None) -> None:
         config = config or RAGConfig()
         self._collection_name = config.collection_name
-        config.persist_dir.mkdir(parents=True, exist_ok=True)
-        self._client = chromadb.PersistentClient(path=str(config.persist_dir))
+        self._client = self._build_client(config)
         self._collection: Collection = self._create_collection()
 
     def upsert(
@@ -97,3 +102,22 @@ class ChromaVectorStore(VectorStore):
             name=self._collection_name,
             metadata={"hnsw:space": "cosine"},
         )
+
+    @staticmethod
+    def _build_client(config: RAGConfig) -> ClientAPI:
+        """Return a Chroma client for the configured mode.
+
+        Raises:
+            VectorStoreConnectionError: If the Chroma server is unreachable.
+        """
+        if config.chroma_mode != HTTP_MODE:
+            config.persist_dir.mkdir(parents=True, exist_ok=True)
+            return chromadb.PersistentClient(path=str(config.persist_dir))
+
+        try:
+            return chromadb.HttpClient(host=config.chroma_host, port=config.chroma_port)
+        except Exception as error:
+            raise VectorStoreConnectionError(
+                f"Cannot reach the Chroma server at {config.chroma_url}. "
+                "Start it with Docker or set CHROMA_MODE=embedded."
+            ) from error

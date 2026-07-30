@@ -1,6 +1,7 @@
 """Application settings loaded from environment variables."""
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -14,6 +15,10 @@ class Settings(BaseSettings):
     debug: bool = False
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/internship_agent"
+    upload_dir: Path = Path("uploads")
+    max_upload_size_mb: int = 10
+    ollama_base_url: str = "http://localhost:11434"
+    ollama_chat_model: str = "llama3.2:1b"
 
     jwt_secret_key: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"

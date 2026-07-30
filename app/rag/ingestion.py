@@ -8,8 +8,8 @@ from typing import Protocol
 from app.rag.config import RAGConfig
 from app.rag.embeddings import EmbeddingService, OllamaEmbeddingService
 from app.rag.vector_store import ChromaVectorStore, VectorStore
-from app.scraper.mocker_scraper import MockScraper
 from app.schemas.rag import InternshipJob
+from app.scraper.mocker_scraper import MockScraper
 
 logger = logging.getLogger(__name__)
 

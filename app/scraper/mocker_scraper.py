@@ -1,15 +1,15 @@
 """Mock interships job scaper returning a static dataset."""
 from __future__ import annotations
-from typing import List
+
 
 class MockScraper:
     """Provides mock internship listings for development and RAG ingestion"""
 
-    def scraper(self) -> List[dict]:
+    def scraper(self) -> list[dict]:
         """Return all mock  internship job records."""
         return self._get_mock_jobs()
     
-    def _get_mock_jobs(self) -> List[dict]:
+    def _get_mock_jobs(self) -> list[dict]:
         return [
             {
                 "title": "Software Development Intern",

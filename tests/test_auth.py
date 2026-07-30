@@ -149,7 +149,6 @@ async def test_get_current_user_from_access_token(jwt_service: JWTService) -> No
 def test_auth_routes_with_overrides(jwt_service: JWTService, settings: Settings) -> None:
     """Exercise route wiring with dependency overrides (no real DB)."""
     from app.api.auth import router
-    from app.auth.cookies import CookieManager
     from app.auth.dependencies import get_auth_service, get_current_user
     from app.auth.service import AuthTokens
     from app.core.config import get_settings

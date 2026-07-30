@@ -121,6 +121,41 @@ uv run python -m app.rag.ingestion
 uv run python -c "from app.rag.retriever import InternshipRetriever; results = InternshipRetriever().search('Python ML internship in Bangalore'); print(results)"
 ```
 
+## User documents and matching
+
+The document parser accepts PDF and DOCX uploads. Ollama must have both the
+embedding model and chat extraction model available:
+
+```powershell
+ollama pull mxbai-embed-large
+ollama pull llama3.2:1b
+```
+
+Apply the initial PostgreSQL schema to a new database:
+
+```powershell
+uv run alembic upgrade head
+```
+
+For a development database previously created by the application's startup
+`create_all`, start the updated application once so missing tables are created,
+then mark the baseline as applied:
+
+```powershell
+uv run alembic stamp head
+```
+
+Authenticated API routes:
+
+- `POST /users/{user_id}/resumes/parse`
+- `GET /users/{user_id}/resumes`
+- `POST /users/{user_id}/cover-letters/parse`
+- `GET /users/{user_id}/cover-letters`
+- `POST /users/{user_id}/profile-summary`
+- `POST /matching`
+
+Interactive request and response documentation is available at `/docs`.
+
 
 
 ## Run the application

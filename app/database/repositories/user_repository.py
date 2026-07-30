@@ -19,21 +19,13 @@ class UserRepository:
 
     async def get_by_email(self, email: str) -> User | None:
         """Fetch a user by email, including profile."""
-        stmt = (
-            select(User)
-            .options(selectinload(User.profile))
-            .where(User.email == email.lower())
-        )
+        stmt = select(User).options(selectinload(User.profile)).where(User.email == email.lower())
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_by_id(self, user_id: UUID) -> User | None:
         """Fetch a user by id, including profile."""
-        stmt = (
-            select(User)
-            .options(selectinload(User.profile))
-            .where(User.id == user_id)
-        )
+        stmt = select(User).options(selectinload(User.profile)).where(User.id == user_id)
         result = await self._session.execute(stmt)
         return result.scalar_one_or_none()
 

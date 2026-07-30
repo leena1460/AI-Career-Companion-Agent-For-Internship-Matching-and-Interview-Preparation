@@ -10,7 +10,6 @@ import jwt
 
 from app.core.config import Settings
 
-
 TokenType = Literal["access", "refresh"]
 
 

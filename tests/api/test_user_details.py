@@ -34,12 +34,16 @@ class TestUserDetailRoutes:
         app.dependency_overrides[get_user_detail_service] = lambda: service
         return TestClient(app)
 
-    def test_rejects_access_to_another_users_resumes(self) -> None:
-        client = self._client(uuid4(), AsyncMock())
+    def test_lists_resumes_for_authenticated_user(self) -> None:
+        user_id = uuid4()
+        service = AsyncMock()
+        service.list_resumes.return_value = []
+        client = self._client(user_id, service)
 
-        response = client.get(f"/users/{uuid4()}/resumes")
+        response = client.get("/resumes")
 
-        assert response.status_code == 403
+        assert response.status_code == 200
+        service.list_resumes.assert_awaited_once_with(user_id)
 
     def test_parses_resume_multipart_upload(self) -> None:
         user_id = uuid4()
@@ -57,7 +61,7 @@ class TestUserDetailRoutes:
         client = self._client(user_id, service)
 
         response = client.post(
-            f"/users/{user_id}/resumes/parse",
+            "/resumes/parse",
             files={
                 "file": (
                     "resume.docx",

@@ -147,12 +147,16 @@ uv run alembic stamp head
 
 Authenticated API routes:
 
-- `POST /users/{user_id}/resumes/parse`
-- `GET /users/{user_id}/resumes`
-- `POST /users/{user_id}/cover-letters/parse`
-- `GET /users/{user_id}/cover-letters`
-- `POST /users/{user_id}/profile-summary`
-- `POST /matching`
+- `POST /resumes/parse`
+- `GET /resumes`
+- `POST /cover-letters/parse`
+- `GET /cover-letters`
+- `POST /profile-summary`
+- `POST /matching` (multipart; accepts either an optional existing
+  `user_detail_id` or a new PDF/DOCX `file`, but not both)
+
+User ownership is derived from the verified access-token cookie; clients do not
+send a `user_id` in these paths or request bodies.
 
 Interactive request and response documentation is available at `/docs`.
 

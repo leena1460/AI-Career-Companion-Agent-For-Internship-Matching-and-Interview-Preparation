@@ -4,23 +4,17 @@ from __future__ import annotations
 
 import uuid
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.schemas.rag import InternshipJob
 
 
 class MatchingRequest(BaseModel):
-    """User context and optional resume-field overrides for matching."""
+    """Optional parsed-resume selection for matching."""
 
-    user_id: uuid.UUID
+    model_config = ConfigDict(extra="forbid")
+
     user_detail_id: uuid.UUID | None = None
-    education: list[dict[str, object]] | None = None
-    skills: list[str] | None = None
-    projects: list[dict[str, object]] | None = None
-    experience: list[dict[str, object]] | None = None
-    profile_summary: str | None = None
-    certifications: list[dict[str, object]] | None = None
-    top_k: int = Field(default=5, ge=1, le=20)
 
 
 class MatchingProfile(BaseModel):

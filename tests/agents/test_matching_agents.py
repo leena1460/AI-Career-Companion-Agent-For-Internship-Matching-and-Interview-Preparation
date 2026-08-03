@@ -117,12 +117,13 @@ class TestMatchingOrchestrator:
         orchestrator = MatchingOrchestrator(users, details, retrieval)
 
         response = await orchestrator.match(
-            MatchingRequest(user_id=user.id, user_detail_id=detail.id)
+            user.id,
+            MatchingRequest(user_detail_id=detail.id),
         )
 
         assert response.profile.skills == ["Python", "FastAPI"]
         assert response.profile.profile_summary == "Backend developer"
-        retrieval.retrieve.assert_awaited_once()
+        retrieval.retrieve.assert_awaited_once_with(response.profile, 5)
 
     @pytest.mark.asyncio
     async def test_rejects_document_owned_by_another_user(self) -> None:
@@ -139,8 +140,8 @@ class TestMatchingOrchestrator:
 
         with pytest.raises(ResourceAccessDeniedError):
             await orchestrator.match(
+                user.id,
                 MatchingRequest(
-                    user_id=user.id,
                     user_detail_id=details.get_by_id.return_value.id,
-                )
+                ),
             )

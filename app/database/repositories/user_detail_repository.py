@@ -37,6 +37,8 @@ class UserDetailRepository:
             experience=[item.model_dump() for item in data.experience],
             profile_summary=data.profile_summary,
             certifications=[item.model_dump() for item in data.certifications],
+            phone_number=_optional_text(data.phone_number),
+            linkedin=_optional_text(data.linkedin),
         )
         return await self._add(detail)
 
@@ -98,3 +100,9 @@ class UserDetailRepository:
         await self._session.flush()
         await self._session.refresh(detail)
         return detail
+
+
+def _optional_text(value: str) -> str | None:
+    """Store blank contact fields as NULL."""
+    cleaned = value.strip()
+    return cleaned or None

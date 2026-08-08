@@ -64,6 +64,8 @@ class ResumeData(BaseModel):
     experience: list[ExperienceItem] = Field(default_factory=list)
     profile_summary: str = ""
     certifications: list[CertificationItem] = Field(default_factory=list)
+    phone_number: str = ""
+    linkedin: str = ""
 
 
 class CoverLetterData(BaseModel):

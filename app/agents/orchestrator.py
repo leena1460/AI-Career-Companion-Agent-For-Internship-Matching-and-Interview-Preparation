@@ -52,6 +52,8 @@ class MatchingOrchestrator:
             experience=detail.experience if detail is not None else [],
             profile_summary=(detail.profile_summary or "") if detail is not None else "",
             certifications=detail.certifications if detail is not None else [],
+            phone_number=(detail.phone_number or "") if detail is not None else "",
+            linkedin=(detail.linkedin or "") if detail is not None else "",
         )
         matches = await self._retrieval_agent.retrieve(profile, DEFAULT_MATCH_COUNT)
         return MatchingResponse(profile=profile, matches=matches)

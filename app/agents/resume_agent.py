@@ -5,7 +5,8 @@ from app.schemas.user_detail import ResumeData
 
 RESUME_EXTRACTION_INSTRUCTIONS = (
     "Extract education, skills, projects, work experience, a concise profile "
-    "summary, and certifications from this resume."
+    "summary, certifications, phone number, and LinkedIn URL from this resume. "
+    "If phone number or LinkedIn are missing, leave those fields as empty strings."
 )
 
 

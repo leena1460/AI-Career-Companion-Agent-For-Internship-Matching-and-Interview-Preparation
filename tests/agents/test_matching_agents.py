@@ -104,6 +104,8 @@ class TestMatchingOrchestrator:
             experience=[],
             profile_summary="Backend developer",
             certifications=[],
+            phone_number="+91 98765 43210",
+            linkedin="https://linkedin.com/in/candidate",
             body_paragraphs=[],
             created_at=datetime.now(UTC),
             updated_at=datetime.now(UTC),
@@ -123,6 +125,8 @@ class TestMatchingOrchestrator:
 
         assert response.profile.skills == ["Python", "FastAPI"]
         assert response.profile.profile_summary == "Backend developer"
+        assert response.profile.phone_number == "+91 98765 43210"
+        assert response.profile.linkedin == "https://linkedin.com/in/candidate"
         retrieval.retrieve.assert_awaited_once_with(response.profile, 5)
 
     @pytest.mark.asyncio

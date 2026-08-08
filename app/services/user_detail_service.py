@@ -115,6 +115,8 @@ class UserDetailService:
             experience=detail.experience,
             profile_summary=detail.profile_summary or "",
             certifications=detail.certifications,
+            phone_number=detail.phone_number or "",
+            linkedin=detail.linkedin or "",
         )
 
     @staticmethod

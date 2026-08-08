@@ -51,6 +51,7 @@ class UserDetail(Base):
     applicant_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     email: Mapped[str | None] = mapped_column(String(255), nullable=True)
     phone_number: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    linkedin: Mapped[str | None] = mapped_column(String(255), nullable=True)
     address: Mapped[str | None] = mapped_column(Text, nullable=True)
     letter_date: Mapped[str | None] = mapped_column(String(60), nullable=True)
     hiring_manager_name: Mapped[str | None] = mapped_column(String(120), nullable=True)

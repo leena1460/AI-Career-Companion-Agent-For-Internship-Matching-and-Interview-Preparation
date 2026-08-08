@@ -30,6 +30,8 @@ class MatchingProfile(BaseModel):
     experience: list[dict[str, object]] = Field(default_factory=list)
     profile_summary: str = ""
     certifications: list[dict[str, object]] = Field(default_factory=list)
+    phone_number: str = ""
+    linkedin: str = ""
 
 
 class MatchCitation(BaseModel):

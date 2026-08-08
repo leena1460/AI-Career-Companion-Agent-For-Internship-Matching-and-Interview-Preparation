@@ -13,6 +13,7 @@ from app.database.repositories.user_detail_repository import UserDetailRepositor
 from app.database.repositories.user_repository import UserRepository
 from app.llm.client import OllamaStructuredExtractionClient
 from app.rag.retriever import InternshipRetriever
+from app.services.job_scrape_service import JobScrapeService
 from app.services.profile_service import ProfileService
 from app.services.user_detail_service import UserDetailService
 from app.utils.file_utils import DocumentFileService
@@ -52,3 +53,8 @@ def get_matching_orchestrator(
         detail_repository=UserDetailRepository(db),
         retrieval_agent=JobRetrievalAgent(InternshipRetriever()),
     )
+
+
+def get_job_scrape_service() -> JobScrapeService:
+    """Provide the mock scrape + parallel persist service."""
+    return JobScrapeService()

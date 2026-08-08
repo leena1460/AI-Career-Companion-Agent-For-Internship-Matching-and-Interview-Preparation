@@ -7,9 +7,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
+from dotenv import load_dotenv
+
 from app.rag.exceptions import InvalidVectorStoreConfigError
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+# Chroma settings come from the raw environment, which pydantic-settings does not populate.
+load_dotenv(PROJECT_ROOT / ".env")
 
 ChromaMode = Literal["embedded", "http"]
 

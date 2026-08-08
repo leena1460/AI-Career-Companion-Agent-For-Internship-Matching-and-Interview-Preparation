@@ -1,98 +1,133 @@
 # AI Internship Agent
 
-## **Implemented project structure**
+AI-powered internship matching platform. Users sign up, upload a resume, and get
+matched against scraped internship listings using a RAG pipeline.
 
-**The structure below documents only the files and modules currently implemented in the project.**
+## Implemented project structure
 
 ```text
 AI Internship Agent/
 ├── app/
-│   ├── __init__.py
-│   ├── main.py                         # FastAPI application entry point
-│   │
+│   ├── main.py                         # FastAPI entry point
 │   ├── api/
-│   │   ├── __init__.py
-│   │   └── auth.py                     # Authentication HTTP endpoints
-│   │
-│   ├── auth/
-│   │   ├── __init__.py
-│   │   ├── cookies.py                  # HTTP-only authentication cookies
-│   │   ├── dependencies.py             # Authentication dependencies
-│   │   ├── jwt.py                      # Access and refresh JWT handling
-│   │   ├── password.py                 # Password hashing and verification
-│   │   └── service.py                  # Authentication business logic
-│   │
-│   ├── core/
-│   │   ├── config.py                   # Environment and application settings
-│   │   └── exceptions.py               # Application domain exceptions
-│   │
+│   │   ├── auth.py                     # Signup, login, logout, refresh, /me
+│   │   ├── jobs.py                     # Authenticated scrape + list jobs
+│   │   ├── matching.py                 # Authenticated internship matching
+│   │   └── user_details.py             # Resume / cover letter / profile summary
+│   ├── auth/                           # JWT, cookies, password, dependencies
+│   ├── agents/                         # Matching orchestrator + agents
+│   ├── services/
+│   │   ├── job_scrape_service.py       # Parallel Postgres + RAG persist
+│   │   ├── profile_service.py
+│   │   └── user_detail_service.py
 │   ├── database/
-│   │   ├── __init__.py
-│   │   ├── connection.py               # PostgreSQL engine and sessions
+│   │   ├── connection.py
 │   │   └── repositories/
-│   │       ├── __init__.py
-│   │       └── user_repository.py      # User persistence operations
-│   │
-│   ├── models/
-│   │   ├── __init__.py
-│   │   └── user.py                     # User and user profile models
-│   │
-│   ├── rag/
-│   │   ├── __init__.py
-│   │   ├── config.py                   # RAG configuration
-│   │   ├── embeddings.py               # Ollama embedding service
-│   │   ├── exceptions.py               # RAG domain exceptions
-│   │   ├── ingestion.py                # Internship ingestion pipeline
-│   │   ├── retriever.py                # Semantic internship retrieval
-│   │   └── vector_store.py             # ChromaDB vector operations
-│   │
+│   ├── models/                         # User, UserDetail, Job
+│   ├── rag/                            # Embeddings, Chroma, ingestion, retrieval
 │   ├── schemas/
-│   │   ├── __init__.py
-│   │   ├── auth.py                     # Authentication schemas
-│   │   └── rag.py                      # Internship and search schemas
-│   │
-│   └── scraper/
-│       └── mocker_scraper.py            # Mock internship data source
-│
+│   ├── scraper/
+│   │   └── mocker_scraper.py           # Mock internship data source
+│   └── llm/
+├── migrations/
+│   └── versions/
+│       ├── 20260730_0001_initial_schema.py
+│       └── 20260805_0002_create_jobs_table.py
 ├── tests/
-│   ├── __init__.py
-│   ├── test_auth.py                    # Authentication unit tests
-│   └── rag/
-│       ├── __init__.py
-│       ├── test_config.py              # RAG configuration unit tests
-│       └── test_vector_store.py        # Chroma client selection unit tests
-│
-├── vector_db/                          # Local ChromaDB data (embedded mode only)
-├── .env                                # Local environment variables
-├── .env.example                        # Environment variable template
-├── .gitignore
-├── .python-version
-├── pyproject.toml                      # Project metadata and dependencies
-├── uv.lock                             # Locked Python dependencies
+├── docker-compose.yml                  # Chroma HTTP server
+├── .env.example
+├── alembic.ini
+├── pyproject.toml
 └── README.md
 ```
 
+## Authentication policy
 
+JWT access and refresh tokens are stored in **HTTP-only cookies**.
 
-## Vector store
+| Kind | Endpoints |
+| --- | --- |
+| Public | `GET /health`, `POST /auth/signup`, `POST /auth/login`, `POST /auth/refresh`, `POST /auth/logout`, `/docs` |
+| Protected | every other business endpoint (requires a valid access-token cookie) |
 
-The RAG layer talks to ChromaDB in one of two modes, selected by `CHROMA_MODE`.
+New endpoints must use `get_current_user` (router-level dependency preferred).
+Clients do **not** send a `user_id`; ownership comes from the verified cookie.
 
+## API overview
 
-| Mode             | Storage                      | Visible in the Chroma DB VS Code extension |
-| ---------------- | ---------------------------- | ------------------------------------------ |
-| `http` (default) | Standalone Chroma server     | Yes                                        |
-| `embedded`       | Local `vector_db/` directory | No                                         |
+### Auth
 
+| Method | Path | Auth |
+| --- | --- | --- |
+| `POST` | `/auth/signup` | No |
+| `POST` | `/auth/login` | No |
+| `POST` | `/auth/refresh` | Refresh cookie |
+| `POST` | `/auth/logout` | No |
+| `GET` | `/auth/me` | Access cookie |
 
-Use `http` when you want to browse the data with a GUI client. Start the server first:
+### Jobs (scrape + list)
+
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| `POST` | `/jobs/scrape?reset_vectors=true` | Required | Runs mock scraper, then concurrently writes to Postgres `jobs` and RAG/Chroma |
+| `GET` | `/jobs` | Required | Lists jobs from PostgreSQL |
+
+Each scrape **replaces** existing Postgres rows and (by default) resets the Chroma collection before re-indexing.
+
+### User documents
+
+| Method | Path | Auth |
+| --- | --- | --- |
+| `POST` | `/resumes/parse` | Required |
+| `GET` | `/resumes` | Required |
+| `POST` | `/cover-letters/parse` | Required |
+| `GET` | `/cover-letters` | Required |
+| `POST` | `/profile-summary` | Required |
+
+### Matching
+
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| `POST` | `/matching` | Required | Multipart: either `user_detail_id` **or** a new PDF/DOCX `file`, not both |
+
+Skills used for matching = signup profile skills **merged with** resume skills.
+
+Interactive docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+## Setup
 
 ```powershell
-docker run --rm -p 6333:8000 chromadb/chroma:latest
-curl http://localhost:6333/api/v2/heartbeat
+uv sync
+copy .env.example .env
 ```
 
-Relevant environment variables:
+Edit `.env` with your PostgreSQL password and secrets.
+
+### PostgreSQL
+
+Start the local Postgres service, then apply migrations:
+
+```powershell
+uv run alembic upgrade head
+```
+
+If the database was created earlier via app startup `create_all`, mark the baseline as applied:
+
+```powershell
+uv run alembic stamp head
+```
+
+### ChromaDB (vector store)
+
+| Mode | Storage | Notes |
+| --- | --- | --- |
+| `http` (default) | Standalone Chroma server | Preferred for browsing with a GUI |
+| `embedded` | Local `vector_db/` | No external server |
+
+```powershell
+docker compose up -d
+curl http://localhost:6333/api/v2/heartbeat
+```
 
 ```ini
 CHROMA_MODE=http
@@ -100,80 +135,34 @@ CHROMA_HOST=localhost
 CHROMA_PORT=6333
 ```
 
-
-
-## RAG module
-
-Ollama must be running with the `mxbai-embed-large` model pulled.
-
-### Ingestion
-
-```powershell
-ollama pull mxbai-embed-large
-uv run python -m app.rag.ingestion
-```
-
-
-
-### Sample retrieval
-
-```powershell
-uv run python -c "from app.rag.retriever import InternshipRetriever; results = InternshipRetriever().search('Python ML internship in Bangalore'); print(results)"
-```
-
-## User documents and matching
-
-The document parser accepts PDF and DOCX uploads. Ollama must have both the
-embedding model and chat extraction model available:
+### Ollama
 
 ```powershell
 ollama pull mxbai-embed-large
 ollama pull llama3.2:1b
 ```
 
-Apply the initial PostgreSQL schema to a new database:
+Optional one-off RAG ingestion (also covered by `POST /jobs/scrape`):
 
 ```powershell
-uv run alembic upgrade head
+uv run python -m app.rag.ingestion
 ```
-
-For a development database previously created by the application's startup
-`create_all`, start the updated application once so missing tables are created,
-then mark the baseline as applied:
-
-```powershell
-uv run alembic stamp head
-```
-
-Authenticated API routes:
-
-- `POST /resumes/parse`
-- `GET /resumes`
-- `POST /cover-letters/parse`
-- `GET /cover-letters`
-- `POST /profile-summary`
-- `POST /matching` (multipart; accepts either an optional existing
-  `user_detail_id` or a new PDF/DOCX `file`, but not both)
-
-User ownership is derived from the verified access-token cookie; clients do not
-send a `user_id` in these paths or request bodies.
-
-Interactive request and response documentation is available at `/docs`.
-
-
 
 ## Run the application
 
 ```powershell
-uv sync
 uv run python -m uvicorn app.main:app --reload
 ```
 
+Typical flow in `/docs`:
 
+1. `POST /auth/signup` or `POST /auth/login` (cookies are set automatically)
+2. `POST /jobs/scrape` to load jobs into Postgres + Chroma
+3. `GET /jobs` to inspect stored jobs
+4. Upload a resume / run `POST /matching`
 
 ## Run the tests
 
 ```powershell
 uv run pytest
 ```
-

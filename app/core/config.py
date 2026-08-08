@@ -32,6 +32,11 @@ class Settings(BaseSettings):
 
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
+    latex_compiler_path: str = "pdflatex"
+    latex_compile_timeout_seconds: int = 60
+    resume_template_path: Path = Path("app/templates/resume/resume_template.tex.j2")
+    tailored_resume_dir: Path = Path("tailored_resumes")
+
 
 @lru_cache
 def get_settings() -> Settings:

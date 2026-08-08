@@ -106,6 +106,10 @@ class UserDetailService:
             for detail in details
         ]
 
+    def resume_data_from_detail(self, detail: UserDetail) -> ResumeData:
+        """Map a persisted resume row to the API/LLM resume schema."""
+        return self._resume_data(detail)
+
     @staticmethod
     def _resume_data(detail: UserDetail) -> ResumeData:
         return ResumeData(
@@ -113,6 +117,7 @@ class UserDetailService:
             skills=detail.skills,
             projects=detail.projects,
             experience=detail.experience,
+            headline=detail.headline or "",
             profile_summary=detail.profile_summary or "",
             certifications=detail.certifications,
             phone_number=detail.phone_number or "",

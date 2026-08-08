@@ -43,6 +43,7 @@ class UserDetail(Base):
     skills: Mapped[list[str]] = mapped_column(JSONB, nullable=False, default=list)
     projects: Mapped[list[dict[str, object]]] = mapped_column(JSONB, nullable=False, default=list)
     experience: Mapped[list[dict[str, object]]] = mapped_column(JSONB, nullable=False, default=list)
+    headline: Mapped[str | None] = mapped_column(String(255), nullable=True)
     profile_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
     certifications: Mapped[list[dict[str, object]]] = mapped_column(
         JSONB, nullable=False, default=list

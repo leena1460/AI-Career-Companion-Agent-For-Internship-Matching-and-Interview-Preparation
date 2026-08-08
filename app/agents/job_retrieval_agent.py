@@ -36,6 +36,7 @@ class JobRetrievalAgent:
     def _build_query(profile: MatchingProfile) -> str:
         matching_context = {
             "preferred_location": profile.location_preference,
+            "headline": profile.headline,
             "skills": profile.skills,
             "education": profile.education,
             "projects": profile.projects,

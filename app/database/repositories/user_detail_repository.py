@@ -35,6 +35,7 @@ class UserDetailRepository:
             skills=data.skills,
             projects=[item.model_dump() for item in data.projects],
             experience=[item.model_dump() for item in data.experience],
+            headline=_optional_text(data.headline),
             profile_summary=data.profile_summary,
             certifications=[item.model_dump() for item in data.certifications],
             phone_number=_optional_text(data.phone_number),

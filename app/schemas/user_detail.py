@@ -21,7 +21,6 @@ class EducationItem(BaseModel):
 
     institution: str = ""
     degree: str = ""
-    field_of_study: str = ""
     start_date: str = ""
     end_date: str = ""
     details: str = ""
@@ -39,11 +38,27 @@ class ProjectItem(BaseModel):
 class ExperienceItem(BaseModel):
     """Employment entry extracted from a resume."""
 
-    company: str = ""
-    role: str = ""
-    start_date: str = ""
-    end_date: str = ""
-    responsibilities: list[str] = Field(default_factory=list)
+    company: str = Field(
+        default="",
+        description=(
+            "Employer or organisation name. It is usually printed on the line "
+            "directly above or below the job title."
+        ),
+    )
+    role: str = Field(default="", description="Job title held at this employer.")
+    start_date: str = Field(default="", description="Start date as written, e.g. 'Feb 2026'.")
+    end_date: str = Field(
+        default="",
+        description="End date as written. Use 'Present' for a current role.",
+    )
+    responsibilities: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Every bullet point listed under this role, each as one string. "
+            "Bullets belong inside this list; never turn a bullet into its own "
+            "experience entry."
+        ),
+    )
 
 
 class CertificationItem(BaseModel):
@@ -61,8 +76,27 @@ class ResumeData(BaseModel):
     education: list[EducationItem] = Field(default_factory=list)
     skills: list[str] = Field(default_factory=list)
     projects: list[ProjectItem] = Field(default_factory=list)
-    experience: list[ExperienceItem] = Field(default_factory=list)
-    profile_summary: str = ""
+    experience: list[ExperienceItem] = Field(
+        default_factory=list,
+        description=(
+            "One entry per employer or internship in the experience section. "
+            "Return an empty list only when the resume has no employment history."
+        ),
+    )
+    headline: str = Field(
+        default="",
+        description=(
+            "The professional title line printed directly under the candidate's "
+            "name at the top of the resume, e.g. 'Associate Data Scientist'."
+        ),
+    )
+    profile_summary: str = Field(
+        default="",
+        description=(
+            "The candidate's summary, profile, or career objective paragraph, "
+            "copied from the resume. Always fill this when such a section exists."
+        ),
+    )
     certifications: list[CertificationItem] = Field(default_factory=list)
     phone_number: str = ""
     linkedin: str = ""

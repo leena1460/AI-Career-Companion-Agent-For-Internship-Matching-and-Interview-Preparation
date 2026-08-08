@@ -51,3 +51,27 @@ class ResourceNotFoundError(RuntimeError):
 
 class ResourceAccessDeniedError(RuntimeError):
     """Raised when a user attempts to access another user's record."""
+
+
+class LatexError(RuntimeError):
+    """Base error for LaTeX rendering or PDF compilation."""
+
+
+class LatexRenderError(LatexError):
+    """Raised when Jinja cannot produce a valid LaTeX document."""
+
+
+class LatexCompilerMissingError(LatexError):
+    """Raised when pdflatex (or the configured compiler) is not available."""
+
+
+class LatexCompileError(LatexError):
+    """Raised when the LaTeX compiler fails or times out."""
+
+
+class ResumeTailoringError(RuntimeError):
+    """Base error for resume-tailoring workflow failures."""
+
+
+class ResumeFabricationError(ResumeTailoringError):
+    """Raised when the LLM invents facts not present in the source resume."""

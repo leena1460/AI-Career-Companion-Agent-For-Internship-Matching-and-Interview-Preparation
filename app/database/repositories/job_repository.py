@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from uuid import UUID
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,6 +22,11 @@ class JobRepository:
         stmt = select(Job).order_by(Job.created_at.desc())
         result = await self._session.execute(stmt)
         return list(result.scalars().all())
+
+    async def get_by_id(self, job_id: UUID) -> Job | None:
+        """Fetch a single job by primary key."""
+        result = await self._session.execute(select(Job).where(Job.id == job_id))
+        return result.scalar_one_or_none()
 
     async def replace_all(self, raw_jobs: list[dict[str, Any]]) -> int:
         """Replace all jobs with a fresh scrape batch and return insert count."""

@@ -7,6 +7,7 @@ __pycache__/
 .ruff_cache/
 vector_db/
 uploads/
+tailored_resumes/
 *.egg-info/
 dist/
 build/

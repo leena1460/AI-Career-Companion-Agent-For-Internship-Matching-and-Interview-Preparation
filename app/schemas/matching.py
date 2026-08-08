@@ -28,6 +28,7 @@ class MatchingProfile(BaseModel):
     skills: list[str] = Field(default_factory=list)
     projects: list[dict[str, object]] = Field(default_factory=list)
     experience: list[dict[str, object]] = Field(default_factory=list)
+    headline: str = ""
     profile_summary: str = ""
     certifications: list[dict[str, object]] = Field(default_factory=list)
     phone_number: str = ""

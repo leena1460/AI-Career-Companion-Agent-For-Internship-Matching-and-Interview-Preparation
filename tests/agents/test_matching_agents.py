@@ -54,6 +54,7 @@ class TestJobRetrievalAgent:
             name="Candidate",
             email="private@example.com",
             location_preference="Remote",
+            headline="Backend Engineer",
             skills=["Python"],
         )
 
@@ -63,6 +64,7 @@ class TestJobRetrievalAgent:
         assert matches[0].citation.apply_url == "https://example.com/apply"
         assert matches[0].citation.vector_document_id == "job-1"
         assert "private@example.com" not in retriever.query
+        assert "Backend Engineer" in retriever.query
 
 
 class TestMatchingOrchestrator:
@@ -102,6 +104,7 @@ class TestMatchingOrchestrator:
             skills=["FastAPI"],
             projects=[],
             experience=[],
+            headline="Software Engineer | Python",
             profile_summary="Backend developer",
             certifications=[],
             phone_number="+91 98765 43210",
@@ -124,6 +127,7 @@ class TestMatchingOrchestrator:
         )
 
         assert response.profile.skills == ["Python", "FastAPI"]
+        assert response.profile.headline == "Software Engineer | Python"
         assert response.profile.profile_summary == "Backend developer"
         assert response.profile.phone_number == "+91 98765 43210"
         assert response.profile.linkedin == "https://linkedin.com/in/candidate"

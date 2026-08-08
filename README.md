@@ -1,7 +1,8 @@
 # AI Internship Agent
 
 AI-powered internship matching platform. Users sign up, upload a resume, and get
-matched against scraped internship listings using a RAG pipeline.
+matched against scraped internship listings using a RAG pipeline. They can also
+tailor a resume toward a job and download a PDF.
 
 ## Implemented project structure
 
@@ -13,13 +14,17 @@ AI Internship Agent/
 │   │   ├── auth.py                     # Signup, login, logout, refresh, /me
 │   │   ├── jobs.py                     # Authenticated scrape + list jobs
 │   │   ├── matching.py                 # Authenticated internship matching
+│   │   ├── resume_tailoring.py         # Authenticated resume → PDF tailoring
 │   │   └── user_details.py             # Resume / cover letter / profile summary
 │   ├── auth/                           # JWT, cookies, password, dependencies
-│   ├── agents/                         # Matching orchestrator + agents
+│   ├── agents/                         # Matching + resume-tailoring agents
 │   ├── services/
 │   │   ├── job_scrape_service.py       # Parallel Postgres + RAG persist
 │   │   ├── profile_service.py
+│   │   ├── resume_tailoring_service.py # LLM → Jinja LaTeX → pdflatex
 │   │   └── user_detail_service.py
+│   ├── templates/resume/
+│   │   └── resume_template.tex.j2      # Jinja LaTeX resume template
 │   ├── database/
 │   │   ├── connection.py
 │   │   └── repositories/
@@ -28,11 +33,16 @@ AI Internship Agent/
 │   ├── schemas/
 │   ├── scraper/
 │   │   └── mocker_scraper.py           # Mock internship data source
-│   └── llm/
+│   ├── llm/
+│   └── utils/
+│       ├── file_utils.py
+│       └── latex_utils.py              # escape_latex / sanitize_url
+├── tailored_resumes/                   # Generated JSON/TeX/PDF artifacts
 ├── migrations/
 │   └── versions/
 │       ├── 20260730_0001_initial_schema.py
-│       └── 20260805_0002_create_jobs_table.py
+│       ├── 20260805_0002_create_jobs_table.py
+│       └── 20260808_0003_add_resume_linkedin.py
 ├── tests/
 ├── docker-compose.yml                  # Chroma HTTP server
 ├── .env.example
@@ -92,6 +102,16 @@ Each scrape **replaces** existing Postgres rows and (by default) resets the Chro
 
 Skills used for matching = signup profile skills **merged with** resume skills.
 
+### Resume tailoring
+
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| `POST` | `/resume-tailoring` | Required | Multipart: `instructions` + exactly one of `file` or `user_detail_id`; optional `job_id`. Returns PDF |
+
+Flow: JWT auth → load user/profile → parse or load resume → optional job → Ollama structured JSON → Jinja LaTeX → `pdflatex` → `FileResponse`. Tailored artifacts are written under `TAILORED_RESUME_DIR/<user_id>/<resume_id>/` (not stored in Postgres).
+
+Requires a local TeX install (see [LaTeX (resume PDF)](#latex-resume-pdf) below).
+
 Interactive docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ## Setup
@@ -139,8 +159,32 @@ CHROMA_PORT=6333
 
 ```powershell
 ollama pull mxbai-embed-large
-ollama pull llama3.2:1b
+ollama pull granite4.1:8b
 ```
+
+### LaTeX (resume PDF)
+
+`POST /resume-tailoring` renders a Jinja2 `.tex` template and compiles it with **`pdflatex`**. Jinja2 is installed via `uv sync`; `pdflatex` is a system TeX tool (not a pip package).
+
+Install one of:
+
+| Option | Platform | Install |
+| --- | --- | --- |
+| **MiKTeX** (recommended on Windows) | Windows | `winget install MiKTeX.MiKTeX` |
+| **TeX Live** | Windows / macOS / Linux | [tug.org/texlive](https://tug.org/texlive/) |
+
+After install, either ensure `pdflatex` is on your `PATH`, or set the full binary path in `.env`:
+
+```ini
+LATEX_COMPILER_PATH=pdflatex
+# Windows MiKTeX example:
+# LATEX_COMPILER_PATH=C:\Users\<you>\AppData\Local\Programs\MiKTeX\miktex\bin\x64\pdflatex.exe
+LATEX_COMPILE_TIMEOUT_SECONDS=60
+RESUME_TEMPLATE_PATH=app/templates/resume/resume_template.tex.j2
+TAILORED_RESUME_DIR=tailored_resumes
+```
+
+On first compile, MiKTeX may prompt to install missing packages — allow automatic install (`initexmf --set-config-value=[MPM]AutoInstall=1` if needed).
 
 Optional one-off RAG ingestion (also covered by `POST /jobs/scrape`):
 
@@ -160,6 +204,7 @@ Typical flow in `/docs`:
 2. `POST /jobs/scrape` to load jobs into Postgres + Chroma
 3. `GET /jobs` to inspect stored jobs
 4. Upload a resume / run `POST /matching`
+5. `POST /resume-tailoring` with instructions + resume/`user_detail_id` (+ optional `job_id`) to download a tailored PDF
 
 ## Run the tests
 

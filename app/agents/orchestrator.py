@@ -50,6 +50,7 @@ class MatchingOrchestrator:
             skills=self._merge_skills(profile_skills, resume_skills),
             projects=detail.projects if detail is not None else [],
             experience=detail.experience if detail is not None else [],
+            headline=(detail.headline or "") if detail is not None else "",
             profile_summary=(detail.profile_summary or "") if detail is not None else "",
             certifications=detail.certifications if detail is not None else [],
             phone_number=(detail.phone_number or "") if detail is not None else "",

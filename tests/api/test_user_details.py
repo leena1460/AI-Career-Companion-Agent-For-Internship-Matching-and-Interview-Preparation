@@ -54,7 +54,10 @@ class TestUserDetailRoutes:
             user_id=user_id,
             file_name="resume.docx",
             file_path="uploads/resume.docx",
-            extracted=ResumeData(skills=["Python"]),
+            extracted=ResumeData(
+                headline="Software Engineer | Python",
+                skills=["Python"],
+            ),
             created_at=now,
             updated_at=now,
         )
@@ -73,6 +76,7 @@ class TestUserDetailRoutes:
 
         assert response.status_code == 201
         assert response.json()["extracted"]["skills"] == ["Python"]
+        assert response.json()["extracted"]["headline"] == "Software Engineer | Python"
         service.parse_resume.assert_awaited_once_with(
             user_id,
             "resume.docx",

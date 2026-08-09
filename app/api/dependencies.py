@@ -8,6 +8,7 @@ from app.agents.job_retrieval_agent import JobRetrievalAgent
 from app.agents.orchestrator import MatchingOrchestrator
 from app.agents.resume_agent import ResumeAgent
 from app.agents.resume_tailoring_agent import ResumeTailoringAgent
+from app.agents.skill_gap_agent import SkillGapAgent
 from app.core.config import Settings, get_settings
 from app.database.connection import get_db
 from app.database.repositories.job_repository import JobRepository
@@ -18,6 +19,7 @@ from app.rag.retriever import InternshipRetriever
 from app.services.job_scrape_service import JobScrapeService
 from app.services.profile_service import ProfileService
 from app.services.resume_tailoring_service import ResumeTailoringService
+from app.services.skill_gap_service import SkillGapService
 from app.services.user_detail_service import UserDetailService
 from app.utils.file_utils import DocumentFileService
 
@@ -75,6 +77,24 @@ def get_resume_tailoring_service(
         jobs=JobRepository(db),
         detail_service=detail_service,
         agent=ResumeTailoringAgent(extraction_client),
+    )
+
+
+def get_skill_gap_service(
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    detail_service: UserDetailService = Depends(get_user_detail_service),
+) -> SkillGapService:
+    """Provide the skill-gap analysis workflow service."""
+    extraction_client = OllamaStructuredExtractionClient(
+        model=settings.ollama_chat_model,
+        base_url=settings.ollama_base_url,
+    )
+    return SkillGapService(
+        details=UserDetailRepository(db),
+        jobs=JobRepository(db),
+        detail_service=detail_service,
+        agent=SkillGapAgent(extraction_client),
     )
 
 

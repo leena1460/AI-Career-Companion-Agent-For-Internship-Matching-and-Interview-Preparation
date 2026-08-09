@@ -10,6 +10,7 @@ from app.api import (
     jobs_router,
     matching_router,
     resume_tailoring_router,
+    skill_gaps_router,
     user_details_router,
 )
 from app.core.config import get_settings
@@ -41,6 +42,7 @@ def create_app() -> FastAPI:
     app.include_router(matching_router)
     app.include_router(jobs_router)
     app.include_router(resume_tailoring_router)
+    app.include_router(skill_gaps_router)
 
     @app.get("/health")
     async def health() -> dict[str, str]:

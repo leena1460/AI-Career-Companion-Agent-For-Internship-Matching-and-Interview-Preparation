@@ -15,13 +15,15 @@ AI Internship Agent/
 │   │   ├── jobs.py                     # Authenticated scrape + list jobs
 │   │   ├── matching.py                 # Authenticated internship matching
 │   │   ├── resume_tailoring.py         # Authenticated resume → PDF tailoring
+│   │   ├── skill_gaps.py               # Authenticated skill-gap analysis
 │   │   └── user_details.py             # Resume / cover letter / profile summary
 │   ├── auth/                           # JWT, cookies, password, dependencies
-│   ├── agents/                         # Matching + resume-tailoring agents
+│   ├── agents/                         # Matching + resume-tailoring + skill-gap agents
 │   ├── services/
 │   │   ├── job_scrape_service.py       # Parallel Postgres + RAG persist
 │   │   ├── profile_service.py
 │   │   ├── resume_tailoring_service.py # LLM → Jinja LaTeX → pdflatex
+│   │   ├── skill_gap_service.py        # Skills + job → LLM skill-gap JSON
 │   │   └── user_detail_service.py
 │   ├── templates/resume/
 │   │   └── resume_template.tex.j2      # Jinja LaTeX resume template
@@ -111,6 +113,14 @@ Skills used for matching = signup profile skills **merged with** resume skills.
 Flow: JWT auth → load user/profile → parse or load resume → optional job → Ollama structured JSON → Jinja LaTeX → `pdflatex` → `FileResponse`. Tailored artifacts are written under `TAILORED_RESUME_DIR/<user_id>/<resume_id>/` (not stored in Postgres).
 
 Requires a local TeX install (see [LaTeX (resume PDF)](#latex-resume-pdf) below).
+
+### Skill gaps
+
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| `POST` | `/skill-gaps` | Required | Multipart: required `job_id` + exactly one of `file` or `user_detail_id`. Returns JSON |
+
+Flow: JWT auth → skills from an existing resume (`user_details.skills`) or a freshly parsed upload → load job from `jobs` → Ollama structured skill-gap JSON → response includes `job_title`, `readiness`, `matched_skills`, `skill_gaps`, and `summary`.
 
 Interactive docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
@@ -205,6 +215,7 @@ Typical flow in `/docs`:
 3. `GET /jobs` to inspect stored jobs
 4. Upload a resume / run `POST /matching`
 5. `POST /resume-tailoring` with instructions + resume/`user_detail_id` (+ optional `job_id`) to download a tailored PDF
+6. `POST /skill-gaps` with `job_id` + resume/`user_detail_id` to see readiness and missing skills
 
 ## Run the tests
 

@@ -3,6 +3,7 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.agents.cover_letter_tailoring_agent import CoverLetterTailoringAgent
 from app.agents.cover_letter_agent import CoverLetterAgent
 from app.agents.job_retrieval_agent import JobRetrievalAgent
 from app.agents.orchestrator import MatchingOrchestrator
@@ -18,6 +19,7 @@ from app.llm.client import OllamaStructuredExtractionClient
 from app.rag.retriever import InternshipRetriever
 from app.services.job_scrape_service import JobScrapeService
 from app.services.profile_service import ProfileService
+from app.services.cover_letter_tailoring_service import CoverLetterTailoringService
 from app.services.resume_tailoring_service import ResumeTailoringService
 from app.services.skill_gap_service import SkillGapService
 from app.services.user_detail_service import UserDetailService
@@ -77,6 +79,26 @@ def get_resume_tailoring_service(
         jobs=JobRepository(db),
         detail_service=detail_service,
         agent=ResumeTailoringAgent(extraction_client),
+    )
+
+
+def get_cover_letter_tailoring_service(
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+    detail_service: UserDetailService = Depends(get_user_detail_service),
+) -> CoverLetterTailoringService:
+    """Provide the cover-letter-tailoring workflow service."""
+    extraction_client = OllamaStructuredExtractionClient(
+        model=settings.ollama_chat_model,
+        base_url=settings.ollama_base_url,
+    )
+    return CoverLetterTailoringService(
+        settings=settings,
+        users=UserRepository(db),
+        details=UserDetailRepository(db),
+        jobs=JobRepository(db),
+        detail_service=detail_service,
+        agent=CoverLetterTailoringAgent(extraction_client),
     )
 
 

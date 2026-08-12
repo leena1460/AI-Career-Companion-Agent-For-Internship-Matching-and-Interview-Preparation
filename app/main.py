@@ -9,6 +9,7 @@ from app.api import (
     auth_router,
     jobs_router,
     matching_router,
+    cover_letter_tailoring_router,
     resume_tailoring_router,
     skill_gaps_router,
     user_details_router,
@@ -42,6 +43,7 @@ def create_app() -> FastAPI:
     app.include_router(matching_router)
     app.include_router(jobs_router)
     app.include_router(resume_tailoring_router)
+    app.include_router(cover_letter_tailoring_router)
     app.include_router(skill_gaps_router)
 
     @app.get("/health")

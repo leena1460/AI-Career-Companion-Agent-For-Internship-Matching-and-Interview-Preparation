@@ -8,6 +8,7 @@ __pycache__/
 vector_db/
 uploads/
 tailored_resumes/
+tailored_cover_letters/
 *.egg-info/
 dist/
 build/

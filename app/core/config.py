@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     upload_dir: Path = Path("uploads")
     max_upload_size_mb: int = 10
     ollama_base_url: str = "http://localhost:11434"
-    ollama_chat_model: str = "llama3.2:1b"
+    ollama_chat_model: str = "gpt-oss:120b-cloud"
 
     jwt_secret_key: str = "change-me-in-production"
     jwt_algorithm: str = "HS256"
@@ -36,6 +36,10 @@ class Settings(BaseSettings):
     latex_compile_timeout_seconds: int = 60
     resume_template_path: Path = Path("app/templates/resume/resume_template.tex.j2")
     tailored_resume_dir: Path = Path("tailored_resumes")
+    cover_letter_template_path: Path = Path(
+        "app/templates/cover_letter/cover_letter_template.tex.j2"
+    )
+    tailored_cover_letter_dir: Path = Path("tailored_cover_letters")
 
 
 @lru_cache

@@ -110,6 +110,10 @@ class UserDetailService:
         """Map a persisted resume row to the API/LLM resume schema."""
         return self._resume_data(detail)
 
+    def cover_letter_data_from_detail(self, detail: UserDetail) -> CoverLetterData:
+        """Map a persisted cover-letter row to the API/LLM cover-letter schema."""
+        return self._cover_letter_data(detail)
+
     @staticmethod
     def _resume_data(detail: UserDetail) -> ResumeData:
         return ResumeData(

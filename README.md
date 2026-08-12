@@ -2,7 +2,7 @@
 
 AI-powered internship matching platform. Users sign up, upload a resume, and get
 matched against scraped internship listings using a RAG pipeline. They can also
-tailor a resume toward a job and download a PDF.
+tailor a resume or cover letter toward a job and download a PDF.
 
 ## Implemented project structure
 
@@ -15,18 +15,23 @@ AI Internship Agent/
 │   │   ├── jobs.py                     # Authenticated scrape + list jobs
 │   │   ├── matching.py                 # Authenticated internship matching
 │   │   ├── resume_tailoring.py         # Authenticated resume → PDF tailoring
+│   │   ├── cover_letter_tailoring.py   # Authenticated cover letter → PDF tailoring
 │   │   ├── skill_gaps.py               # Authenticated skill-gap analysis
 │   │   └── user_details.py             # Resume / cover letter / profile summary
 │   ├── auth/                           # JWT, cookies, password, dependencies
-│   ├── agents/                         # Matching + resume-tailoring + skill-gap agents
+│   ├── agents/                         # Matching + tailoring + skill-gap agents
 │   ├── services/
 │   │   ├── job_scrape_service.py       # Parallel Postgres + RAG persist
 │   │   ├── profile_service.py
 │   │   ├── resume_tailoring_service.py # LLM → Jinja LaTeX → pdflatex
+│   │   ├── cover_letter_tailoring_service.py
 │   │   ├── skill_gap_service.py        # Skills + job → LLM skill-gap JSON
 │   │   └── user_detail_service.py
-│   ├── templates/resume/
-│   │   └── resume_template.tex.j2      # Jinja LaTeX resume template
+│   ├── templates/
+│   │   ├── resume/
+│   │   │   └── resume_template.tex.j2      # Jinja LaTeX resume template
+│   │   └── cover_letter/
+│   │       └── cover_letter_template.tex.j2
 │   ├── database/
 │   │   ├── connection.py
 │   │   └── repositories/
@@ -39,7 +44,8 @@ AI Internship Agent/
 │   └── utils/
 │       ├── file_utils.py
 │       └── latex_utils.py              # escape_latex / sanitize_url
-├── tailored_resumes/                   # Generated JSON/TeX/PDF artifacts
+├── tailored_resumes/                   # Generated JSON/TeX/PDF resume artifacts
+├── tailored_cover_letters/           # Generated JSON/TeX/PDF cover-letter artifacts
 ├── migrations/
 │   └── versions/
 │       ├── 20260730_0001_initial_schema.py
@@ -112,7 +118,17 @@ Skills used for matching = signup profile skills **merged with** resume skills.
 
 Flow: JWT auth → load user/profile → parse or load resume → optional job → Ollama structured JSON → Jinja LaTeX → `pdflatex` → `FileResponse`. Tailored artifacts are written under `TAILORED_RESUME_DIR/<user_id>/<resume_id>/` (not stored in Postgres).
 
-Requires a local TeX install (see [LaTeX (resume PDF)](#latex-resume-pdf) below).
+Requires a local TeX install (see [LaTeX (PDF output)](#latex-pdf-output) below).
+
+### Cover letter tailoring
+
+| Method | Path | Auth | Notes |
+| --- | --- | --- | --- |
+| `POST` | `/cover-letter-tailoring` | Required | Multipart: `instructions` + exactly one of `file` or `user_detail_id`; optional `job_id`. Returns PDF |
+
+Flow: JWT auth → parse or load cover letter → optional job → Ollama structured JSON → Jinja LaTeX (Sid Lacy letter template) → `pdflatex` → `FileResponse`. Tailored artifacts are written under `TAILORED_COVER_LETTER_DIR/<user_id>/<cover_letter_id>/` (not stored in Postgres).
+
+Response header: `X-Cover-Letter-Id`.
 
 ### Skill gaps
 
@@ -172,7 +188,7 @@ ollama pull mxbai-embed-large
 ollama pull granite4.1:8b
 ```
 
-### LaTeX (resume PDF)
+### LaTeX (PDF output)
 
 `POST /resume-tailoring` renders a Jinja2 `.tex` template and compiles it with **`pdflatex`**. Jinja2 is installed via `uv sync`; `pdflatex` is a system TeX tool (not a pip package).
 
@@ -192,6 +208,8 @@ LATEX_COMPILER_PATH=pdflatex
 LATEX_COMPILE_TIMEOUT_SECONDS=60
 RESUME_TEMPLATE_PATH=app/templates/resume/resume_template.tex.j2
 TAILORED_RESUME_DIR=tailored_resumes
+COVER_LETTER_TEMPLATE_PATH=app/templates/cover_letter/cover_letter_template.tex.j2
+TAILORED_COVER_LETTER_DIR=tailored_cover_letters
 ```
 
 On first compile, MiKTeX may prompt to install missing packages — allow automatic install (`initexmf --set-config-value=[MPM]AutoInstall=1` if needed).

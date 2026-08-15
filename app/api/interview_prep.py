@@ -9,11 +9,14 @@ from fastapi import APIRouter, Depends, Form, HTTPException, status
 from app.api.dependencies import get_interview_prep_service
 from app.auth.dependencies import get_current_user
 from app.core.exceptions import DocumentParsingError, ResourceNotFoundError
-from app.schemas.auth import UserPublic
 from app.schemas.interview_prep import InterviewPrepResponse
 from app.services.interview_prep_service import InterviewPrepService
 
-router = APIRouter(prefix="/interview-prep", tags=["interview preparation"])
+router = APIRouter(
+    prefix="/interview-prep",
+    tags=["interview preparation"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 def _parse_optional_uuid(value: str, field_name: str) -> uuid.UUID | None:
@@ -38,7 +41,6 @@ async def prepare_interview(
         default="",
         description="Optional free-form guidance sent to the LLM.",
     ),
-    current_user: UserPublic = Depends(get_current_user),
     service: InterviewPrepService = Depends(get_interview_prep_service),
 ) -> InterviewPrepResponse:
     """Generate interview preparation guidance for a job and/or instructions."""

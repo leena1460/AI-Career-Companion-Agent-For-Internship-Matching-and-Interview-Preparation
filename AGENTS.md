@@ -91,6 +91,34 @@ Conventions enforced across all layers:
   baseline with `uv run alembic stamp head` (see README) before running new
   migrations, or Alembic will think nothing is applied.
 
+## LLM / cloud-model gotcha (important)
+
+The default `ollama_chat_model` is `gpt-oss:120b-cloud`, a **cloud-routed**
+ model (`remote_host: https://ollama.com`, visible in `ollama list`).
+Unlike local GGUF models, cloud models treat Ollama's `format=json_schema`
+as **loose guidance** and may rename fields or merge semantically-similar
+keys, producing valid JSON that fails Pydantic validation.
+
+Confirmed drift on `gpt-oss:120b-cloud` (caused a 502 on `POST /interview-prep`):
+- `focus_areas` items emitted `subject` instead of the required `topic`.
+- `technical_questions` items put the question text in `topic` and **omitted**
+  the required `question` field entirely.
+
+The blanket `except Exception` in `app/llm/client.py:extract()` maps any such
+`ValidationError` to a generic
+`"could not produce the required structured document response"` 502 that hides
+the real cause. When debugging a 502 from an agent endpoint, reproduce the raw
+`/api/chat` call with `format=<schema>` and check the field names in
+`message.content` before trusting the generic message.
+
+**Fix pattern**: when a cloud model drifts on field names, add an explicit
+field-name contract (required keys + one worked example per drifted section)
+to the agent's `*_INSTRUCTIONS` string. This was applied in
+`interview_prep_agent.py` and made `gpt-oss:120b-cloud` validate cleanly. Do
+**not** weaken the Pydantic schema to match the model — fix the prompt.
+Local models like `granite4.1:8b` enforce `json_schema` strictly and rarely
+need this.
+
 ## PDF-tailoring quirks (resume / cover-letter endpoints)
 
 - `pdflatex` is a **system** binary (MiKTeX/TeX Live), not a pip package. Set
@@ -122,8 +150,10 @@ Conventions enforced across all layers:
 ## What is NOT built (do not assume it exists)
 
 Live LinkedIn/Internshala/AICTE scrapers, the Recommendation Agent, the
-Application Assistant Agent, the conversations/chatbot API, and the Streamlit
-frontend are **not implemented**. The only scraper is
+Application Assistant Agent (the broad cover-letter/interview-prep *orchestrator*
+envisioned in SKILL.md §6 — note the individual cover-letter-tailoring and
+interview-prep endpoints **are** implemented), the conversations/chatbot API, and
+the Streamlit frontend are **not implemented**. The only scraper is
 `app/scraper/mocker_scraper.py` (mock data). See SKILL.md §6 for the full
 "Done / Not started" breakdown, and ask before expanding scope beyond the
 current build target.

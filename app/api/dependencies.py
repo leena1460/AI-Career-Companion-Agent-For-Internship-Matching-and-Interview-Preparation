@@ -3,8 +3,9 @@
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.agents.cover_letter_tailoring_agent import CoverLetterTailoringAgent
 from app.agents.cover_letter_agent import CoverLetterAgent
+from app.agents.cover_letter_tailoring_agent import CoverLetterTailoringAgent
+from app.agents.interview_prep_agent import InterviewPrepAgent
 from app.agents.job_retrieval_agent import JobRetrievalAgent
 from app.agents.orchestrator import MatchingOrchestrator
 from app.agents.resume_agent import ResumeAgent
@@ -17,9 +18,10 @@ from app.database.repositories.user_detail_repository import UserDetailRepositor
 from app.database.repositories.user_repository import UserRepository
 from app.llm.client import OllamaStructuredExtractionClient
 from app.rag.retriever import InternshipRetriever
+from app.services.cover_letter_tailoring_service import CoverLetterTailoringService
+from app.services.interview_prep_service import InterviewPrepService
 from app.services.job_scrape_service import JobScrapeService
 from app.services.profile_service import ProfileService
-from app.services.cover_letter_tailoring_service import CoverLetterTailoringService
 from app.services.resume_tailoring_service import ResumeTailoringService
 from app.services.skill_gap_service import SkillGapService
 from app.services.user_detail_service import UserDetailService
@@ -123,3 +125,18 @@ def get_skill_gap_service(
 def get_job_scrape_service() -> JobScrapeService:
     """Provide the mock scrape + parallel persist service."""
     return JobScrapeService()
+
+
+def get_interview_prep_service(
+    db: AsyncSession = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> InterviewPrepService:
+    """Provide the interview-preparation workflow service."""
+    extraction_client = OllamaStructuredExtractionClient(
+        model=settings.ollama_chat_model,
+        base_url=settings.ollama_base_url,
+    )
+    return InterviewPrepService(
+        jobs=JobRepository(db),
+        agent=InterviewPrepAgent(extraction_client),
+    )

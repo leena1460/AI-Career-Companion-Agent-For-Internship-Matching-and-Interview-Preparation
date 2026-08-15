@@ -7,9 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import (
     auth_router,
+    cover_letter_tailoring_router,
+    interview_prep_router,
     jobs_router,
     matching_router,
-    cover_letter_tailoring_router,
     resume_tailoring_router,
     skill_gaps_router,
     user_details_router,
@@ -45,6 +46,7 @@ def create_app() -> FastAPI:
     app.include_router(resume_tailoring_router)
     app.include_router(cover_letter_tailoring_router)
     app.include_router(skill_gaps_router)
+    app.include_router(interview_prep_router)
 
     @app.get("/health")
     async def health() -> dict[str, str]:

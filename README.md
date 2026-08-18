@@ -189,23 +189,23 @@ Interactive docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
 ## Agent flow diagrams (draw.io)
 
-Visual architecture for all agents. **Editable sources** live in [`docs/diagrams/`](docs/diagrams/) (open `.drawio` files in [diagrams.net](https://app.diagrams.net)). SVG previews render below in GitHub.
+Visual architecture for all agents. **Editable sources** live in [`docs/diagrams/`](docs/diagrams/) (open `.drawio` files in [diagrams.net](https://app.diagrams.net)). PNG previews below render on GitHub and in most Markdown viewers.
 
 ### 1. Platform agents overview
 
 High-level map: frontend → FastAPI → agents → Ollama → Postgres / Chroma / PDF artifacts.
 
-![Platform agents overview](docs/diagrams/platform-agents-overview.svg)
+![Platform agents overview](docs/diagrams/platform-agents-overview.png)
 
-[Edit in draw.io](docs/diagrams/platform-agents-overview.drawio)
+[Edit in draw.io](docs/diagrams/platform-agents-overview.drawio) · [SVG](docs/diagrams/platform-agents-overview.svg)
 
 ### 2. LLM endpoint pattern (4 layers)
 
 Every JSON/PDF agent endpoint follows **API → Service → Agent → Schema**. Chat uses the same service layer with a LangGraph agent.
 
-![LLM endpoint pipeline](docs/diagrams/llm-endpoint-pipeline.svg)
+![LLM endpoint pipeline](docs/diagrams/llm-endpoint-pipeline.png)
 
-[Edit in draw.io](docs/diagrams/llm-endpoint-pipeline.drawio)
+[Edit in draw.io](docs/diagrams/llm-endpoint-pipeline.drawio) · [SVG](docs/diagrams/llm-endpoint-pipeline.svg)
 
 | Endpoint | Agent | Output |
 | --- | --- | --- |
@@ -220,9 +220,9 @@ Every JSON/PDF agent endpoint follows **API → Service → Agent → Schema**. 
 
 Conversational agent exposed as `POST /chat` and the frontend **Career Chat** page.
 
-![Career Chat agent flow](docs/diagrams/career-chat-agent.svg)
+![Career Chat agent flow](docs/diagrams/career-chat-agent.png)
 
-[Edit in draw.io](docs/diagrams/career-chat-agent.drawio)
+[Edit in draw.io](docs/diagrams/career-chat-agent.drawio) · [SVG](docs/diagrams/career-chat-agent.svg)
 
 **Graph nodes** (`app/agents/career_agent.py`):
 

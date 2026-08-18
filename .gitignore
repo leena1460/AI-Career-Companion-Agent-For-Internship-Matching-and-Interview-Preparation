@@ -14,3 +14,7 @@ dist/
 build/
 # Cursor
 .cursor/
+
+# Local agent notes (not for remote)
+AGENTS.md
+chat_Agent_plan.md
